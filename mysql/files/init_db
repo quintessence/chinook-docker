@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e
+set -x
+
+mysql_install_db --basedir=/usr/local/mysql
+
+# Starting the daemon
+/usr/local/mysql/bin/mysqld --user=root &
+mysql_pid=$!
+
+until mysqladmin ping &>/dev/null; do
+  echo -n "."; sleep 5
+done
+
+# Grant `root' login w/o password from outside container
+mysql -e "GRANT ALL ON *.* TO root@'%' IDENTIFIED BY '' WITH GRANT OPTION"
+
+# Create database from file
+mysql < /tmp/Chinook_MySql.sql
+
+# Shutdown MySQL daemon & wait for exit
+mysqladmin shutdown
+wait $mysql_pid
+
+# Create tar file of current database
+#   This tarfile contains the initialized state of the database
+#   If the DB is empty when the container is started (it will be)
+#   then this is what will be unpacked from the ENTRYPOINT /tmp/run_db script
+tar czvf chinook-mysql.tar.gz /var/lib/mysql
