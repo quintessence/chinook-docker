@@ -6,5 +6,4 @@ set -x
 # Never assume the database will be empty
 [ "$(ls -A /var/lib/mysql)" ] && echo "Running with existing database in /var/lib/mysql" || ( echo "Populate with Chinook data"; tar xpzvf chinook-mysql.tar.gz )
 
-#/usr/sbin/mysqld
 /usr/local/mysql/bin/mysqld --user=root
